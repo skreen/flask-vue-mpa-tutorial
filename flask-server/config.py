@@ -1,14 +1,19 @@
-import os
+"""Flask config."""
+from os import environ, path
+from dotenv import load_dotenv
+
+basedir = path.abspath(path.dirname(__file__))
+load_dotenv(path.join(basedir, '.env'))
+
 class Config(object):
-    SECRET_KEY = os.environ.get("SECRET_KEY")
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'None'
-class ProductionConfig(Config):
+
+class ProdConfig(Config):
     DEBUG = False
-    SECRET_KEY = os.environ.get("SECRET_KEY")
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-class DevelopmentConfig(Config):
-    ENV = "development"
+    SECRET_KEY =  environ.get("SECRET_KEY")
+
+class DevConfig(Config):
     DEVELOPMENT = True
-    SECRET_KEY = os.environ.get("SECRET_KEY")
+    SECRET_KEY = environ.get("SECRET_KEY")

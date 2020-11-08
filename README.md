@@ -129,7 +129,55 @@ and add
 SECRET_KEY='This shouldn't be pushed to github'
 ```
 
+create the file `config.py` and add the following:
 
+```python
+"""Flask config."""
+from os import environ, path
+from dotenv import load_dotenv
+
+basedir = path.abspath(path.dirname(__file__))
+load_dotenv(path.join(basedir, '.env'))
+
+class Config(object):
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'None'
+
+class ProdConfig(Config):
+    DEBUG = False
+    SECRET_KEY = environ.get("SECRET_KEY")
+
+class DevConfig(Config):
+    DEVELOPMENT = True
+    SECRET_KEY = environ.get("SECRET_KEY")
+```
+
+This file will be used to store configurationes used for production server and development. The correct config will be loaded in `appserver.py` by reading the settings in`.flaskenv`.
+
+Replace `appserver.py` content with the following:
+
+```python
+from flask import Flask
+from os import environ, path
+from dotenv import load_dotenv
+
+app = Flask(__name__)
+
+basedir = path.abspath(path.dirname(__file__))
+load_dotenv(path.join(basedir, '.flaskenv'))
+
+if environ.get('FLASK_ENV') == 'development':
+    app.config.from_object('config.DevConfig')
+else:
+    app.config.from_object('config.ProdConfig')
+
+@app.route('/')
+def home():
+    return 'The very secret key' + app.config['SECRET_KEY'] 
+```
+
+If you remove the line with FLASK_ENV or change it to any other value than development in the file .flaskenv the ProdConfig will be used.
 
 
 
