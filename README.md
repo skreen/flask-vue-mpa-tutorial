@@ -153,7 +153,7 @@ class DevConfig(Config):
     SECRET_KEY = environ.get("SECRET_KEY")
 ```
 
-This file will be used to store configurationes used for production server and development. The correct config will be loaded in `appserver.py` by reading the settings in`.flaskenv`.
+This file will be used to store configurations used for production server and development. The correct config will be loaded in `appserver.py` by reading the settings in`.flaskenv`.
 
 Replace `appserver.py` content with the following:
 
