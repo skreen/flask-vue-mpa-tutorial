@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from os import environ, path
 from dotenv import load_dotenv
 
@@ -13,5 +13,6 @@ else:
     app.config.from_object('config.ProdConfig')
 
 @app.route('/')
+
 def home():
-    return 'The very secret key' + app.config['SECRET_KEY'] 
+    return render_template('home.html')
