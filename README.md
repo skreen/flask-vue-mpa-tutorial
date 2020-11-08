@@ -7,6 +7,8 @@ This is written for use on Windows 10 with powershell.
 
 You should also have [python3](https://www.python.org) installed and venv, which should come with python3.
 
+npm (node.js) is also required.
+
 ## Step 1 - The virtual environment
 
 Create a virtual environment folder, I do this in the root of the cloned github project.
@@ -56,8 +58,8 @@ create the file
 The folder structure
 
 ```
-+.venv
-+flask-server
++ .venv/
++ flask-server
    + app.py
 ```
 
@@ -179,7 +181,171 @@ def home():
 
 If you remove the line with FLASK_ENV or change it to any other value than development in the file .flaskenv the ProdConfig will be used.
 
+current directory structure
+```
++ .venv/
++ flaskserver/
+|  + .env
+|  + .flaskenv
+|  + appserver.py
+|  + config.py
+```
 
+## Step 4 - Jinja and flask directory structure
 
+We will set up a basic structure for flask directories. Create the folders
 
+1. flaskserver/templates
+
+    Used for templates
+
+2. flaskserver/templates/includes
+
+   Used for partial includes into templates
+
+3. flaskserver/static
+
+   Used for static files
+
+4. flaskserver/static/css
+
+    For stylesheets. we will add tailwind later
+
+The directory structure should now contain:
+```
++ .venv/
++ flaskserver/
+    + static/
+    |    + css/
+    + templates/
+    |    + includes/
+|  + .env
+|  + .flaskenv
+|  + appserver.py
+|  + config.py
+```
+
+### Step 4.1
+
+Make a simple Jinja template.
+Create the new file flask-server/templates/layout.html
+and add the following
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask app</title>
+</head>
+<body>
+{% block content%}{% endblock %}
+</body>
+</html>
+```
+Create flask-server/templates/home.html
+And add 
+```html
+{% extends 'layout.html' %}
+{% block content %}
+<h1>Welcome home!</h1>
+{% endblock %}
+```
+
+Now we need to import `render_template` and use it in `appserver.py`.
+This is the final results
+
+```python
+from flask import Flask, render_template
+from os import environ, path
+from dotenv import load_dotenv
+
+app = Flask(__name__)
+
+basedir = path.abspath(path.dirname(__file__))
+load_dotenv(path.join(basedir, '.flaskenv'))
+
+if environ.get('FLASK_ENV') == 'development':
+    app.config.from_object('config.DevConfig')
+else:
+    app.config.from_object('config.ProdConfig')
+
+@app.route('/')
+
+def home():
+    return render_template('home.html')
+```
+
+If you run the server and head to http://127.0.0.1:5000 you will be greeted with the new template.
+
+Before we use the `includes` directory we are going to add tailwind css
+
+Step 5 - tailwind css
+
+in the projet root create the folder tailwindcss
+```cmd
+mkdir tailwind
+cd tailwindcss
+npm -y init
+```
+
+The npm command is to create the `package.json` file.
+Now install tailwind css, remember to run the command from the tailwind folder otherwise you cant uninstall automatically
+
+```cmd
+npm install tailwindcss
+```
+
+Also generate the tailwind config for future use with
+
+```cmd
+npx tailwindcss init
+```
+
+While we are at it, make a src folder at `tailwind/src`
+and create the file `tailwind/src/style.css`
+
+Add the following content to the file.
+```css
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+```
+
+We're going to make a build script for convenience so that the css is built in our flask-server.
+
+Open `tailwind/package.json` and change the script section to the following:
+
+```json
+  "scripts": {
+    "build": "tailwind build src/style.css -o ../flask-server/static/css/style.css"
+  },
+```
+
+Then run the command (while in the tailwind folder)
+```cmd
+npm run build
+```
+You know have a tailwind.css in your static/css folder.
+
+Step 5.1 - Modifying template to use the css
+
+Open layout.html and add the following to test the stylesheet
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask app</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body class="bg-blue-600 text-white p-4">
+{% block content%}{% endblock %}
+</body>
+</html>
+```
 
